@@ -1,0 +1,9 @@
+[mysqld]
+# Performance optimizations
+innodb_flush_log_at_trx_commit = 2
+innodb_file_per_table = 1
+query_cache_type = 1
+query_cache_size = 256M
+
+# Security
+skip_name_resolve = 1
