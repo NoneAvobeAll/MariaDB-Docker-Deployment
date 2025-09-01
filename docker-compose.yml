@@ -1,0 +1,52 @@
+services:
+  mariadb:
+    image: mariadb:11.4 # Latest LTS version of MariaDB
+    container_name: mariadb_server_3308
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-2hmAbH42984kff} # mandatory: root password
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-backend}       # optional: auto-create DB
+      MYSQL_USER: ${MYSQL_USER:-appuser}             # optional: app user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-SuperAjairaPassword}     # optional: user password
+      TZ: "UTC"
+      MYSQL_INITDB_SKIP_TZINFO: "1"                  # Speeds up initialization
+    volumes:
+      - mariadb_data3308:/var/lib/mysql
+      - ./mariadb/conf.d:/etc/mysql/conf.d:ro        # place custom configs
+      - ./mariadb/init:/docker-entrypoint-initdb.d:ro # auto-init scripts
+    ports:
+      - "3308:3306" 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-2hmAbHY8K321}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    command:
+      - --max_connections=4000
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=1G  # adjust per host memory --- dekhe shune korle valo, nahole heap memory bere gele process kill hoye jabe
+    # Optional resource limits (tune as per host capacity) --- na lagle urai dawa jabe Chill.... 
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "1.0"
+          memory: 1G
+    networks:
+      - mariadb_net
+
+volumes:
+  mariadb_data3308:
+    driver: local
+
+networks:
+  mariadb_net:
+    driver: bridge
